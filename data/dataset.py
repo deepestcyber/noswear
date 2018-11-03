@@ -4,22 +4,23 @@ from itertools import cycle
 
 DEFAULT_PROVIDERS = {
     'dictcc': {
-        'path': 'distcc/download/',
+        'path': 'data/distcc/download/',
         'format': 'mp3',
     },
     'forvo': {
-        'path': 'forvo/download/',
+        'path': 'data/forvo/download/',
         'format': 'mp3',
     },
     'meariamwebster': {
-        'path': 'meriamwebster/download/',
+        'path': 'data/meriamwebster/download/',
         'format': 'wav',
     },
 }
 
 
 class SwearDataset:
-    def __init__(self, providers, good_word_path='good_words.txt', bad_word_path='bad_words.txt'):
+    def __init__(self, providers, good_word_path='data/good_words.txt',
+            bad_word_path='data/bad_words.txt'):
         self.good_word_path = good_word_path
         self.bad_word_path = bad_word_path
         self.providers = providers

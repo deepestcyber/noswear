@@ -44,10 +44,10 @@ class SwearDataset:
 
     def table(self):
         good_words = self.words_from_file(self.good_word_path)
-        good_words = zip(good_words, cycle([True]))
+        good_words = zip(good_words, cycle([False]))
 
         bad_words = self.words_from_file(self.bad_word_path)
-        bad_words = zip(bad_words, cycle([False]))
+        bad_words = zip(bad_words, cycle([True]))
 
         for word, goodness in [*good_words, *bad_words]:
             for provider in self.providers.values():

@@ -1,3 +1,5 @@
+from collections import Counter
+
 import torch
 
 
@@ -28,3 +30,22 @@ def bucketing_dataloader(ds, bucket_fn, **kwargs):
         Xi['X'] = Xi['X'][:, None, :, :]
 
         yield Xi, yi
+
+def low_count_words(X, min_count=-1):
+    for k, v in Counter([n[0] for n in X]).items():
+        if v < min_count:
+            yield k
+
+def indices_by_word(X, words):
+    for i, w in enumerate([n[0] for n in X]):
+        if w in words:
+            yield i
+
+def filter_low_count_words(X, min_count=-1):
+    """Return indices that satisfy given min. word count.
+    """
+    words = list(low_count_words(X, min_count))
+    idcs = set(indices_by_word(X, words))
+    mask = list(set(range(len(X))) - idcs)
+
+    return mask

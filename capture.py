@@ -109,7 +109,7 @@ def capture(audio_conf, use_file, queue, verbose, debug=False):
             f.writeframes(y.tostring())
             debug_i += 1
 
-        spect = compute_spect(y)
+        spect = compute_spect(y.astype('float16'))
 
         if debug:
             import pdb

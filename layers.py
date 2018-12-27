@@ -5,4 +5,5 @@ class ResidualRNN(torch.nn.Module):
         super().__init__()
         self.rnn = rnn
     def forward(self, x):
+        # TODO: needs residual feedback via `h`
         return self.rnn(x)[0] + x

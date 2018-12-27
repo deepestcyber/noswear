@@ -27,7 +27,12 @@ class NoSwearModel(torch.nn.Module):
         self.base_model.fc = Identity()
         self.base_model.inference_softmax = Identity()
 
-        self.rnn = torch.nn.GRU(672, n_hidden, num_layers=n_layer, bias=False, batch_first=True)
+        self.rnn = torch.nn.GRU(
+                672,
+                n_hidden,
+                num_layers=n_layer,
+                bias=False,
+                batch_first=True)
 
         self.clf = torch.nn.Linear(n_hidden, 2, bias=False)
         self.dropout = torch.nn.Dropout(p=p_dropout)

@@ -13,7 +13,7 @@ audio_conf = DeepSpeech.get_audio_conf(base_model)
 parser = SpectrogramParser(audio_conf)
 
 
-net = load_model(base_model, 'binary_clf.pt')
+net = load_model(base_model, 'models/binary_clf.pt')
 
 print(net)
 

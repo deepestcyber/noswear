@@ -1,9 +1,12 @@
-
-- capture.py: audio capture process
-- worker.py: classifies speech captured via capture.capture
+# Contents
 
 - models: contains pre-trained models, such as the librispeech
   	      DeepSpeech.pytorch model
+
+- examples: basic usage examples
+
+- noswear: python software package where all the magic happens
+
 
 ## Installation
 
@@ -12,13 +15,11 @@ Expected: debian based OS (preferably Ubuntu, tested on 18.04).
 	sudo apt install libsox3 libsox-fmt-all libsox-dev
 	sudo apt install libasound2-dev
 
-	git clone https://github.com/pytorch/audio.git torchaudio
-	cd torchaudio && python setup.py install
+	virtualenv -p python3 ~/envs/noswear
+	. ~/envs/noswear/bin/activate
 
 	git clone https://github.com/deepestcyber/DeepSpeech.pytorch -b 35c3
 	cd DeepSpeech.pytorch && python setup.py install
 
-	pip install torch
-	pip install skorch
-	pip install pyalsaaudio
-	pip install librosa
+	pip install -r requirements.txt
+	python setup.py install

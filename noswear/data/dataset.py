@@ -21,12 +21,34 @@ DEFAULT_PROVIDERS = {
 class SwearDataset:
     """Low-level dataset. Provides path to sound files (X) and
     corresponding label (y).
+
+    Expects all given paths to be relative to a certain base path to
+    enforce basically the following directory structure:
+
+    base/
+     |
+     `- data/
+         |
+         `- good_words.txt
+         |
+         `- bad_words.txt
+         |
+         `- providerA
+               |
+               `- sample1.wav
+
+    The base_path would be `base` in this case.
     """
-    def __init__(self, providers, good_word_path='data/good_words.txt',
+    def __init__(self, base_path, providers, good_word_path='data/good_words.txt',
             bad_word_path='data/bad_words.txt'):
-        self.good_word_path = good_word_path
-        self.bad_word_path = bad_word_path
+        self.good_word_path = os.path.join(base_path, good_word_path)
+        self.bad_word_path = os.path.join(base_path, bad_word_path)
         self.providers = providers
+        for provider in self.providers:
+            self.providers[provider]['path'] = os.path.join(
+                base_path,
+                self.providers[provider]['path'],
+            )
 
     def words_from_file(self, path):
         with open(path) as f:

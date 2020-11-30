@@ -69,8 +69,13 @@ class NoSwearModel(torch.nn.Module):
         return y
 
 
+class BinaryClassifier(skorch.classifier.NeuralNetBinaryClassifier):
+    def get_loss(self, y_pred, y_true, *args, **kwargs):
+        return super().get_loss(y_pred[0], y_true, *args, **kwargs)
+
+
 def get_net(base_model, device='cpu', **kwargs):
-    net = skorch.classifier.NeuralNetBinaryClassifier(
+    net = BinaryClassifier(
         partial(NoSwearModel, base_model),
 
         iterator_train=bucketing_dataloader,

@@ -3,7 +3,7 @@ import numpy as np
 from deepspeech.model import DeepSpeech
 from deepspeech.data.data_loader import SpectrogramParser
 
-from model import load_model
+from noswear.model import load_model
 
 
 base_model = DeepSpeech.load_model(

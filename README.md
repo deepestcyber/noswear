@@ -23,3 +23,11 @@ Expected: debian based OS (preferably Ubuntu, tested on 18.04).
 
 	pip install -r requirements.txt
 	python setup.py install
+
+
+## Training
+
+The current model is still experimental so the most detail is
+in `notebooks/binary_recognition_binclass.ipynb` but there is
+also a training script in `examples/train_binary.py` which
+will produce a trained model.

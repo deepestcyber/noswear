@@ -1,10 +1,26 @@
+
 from functools import partial
 
-import skorch
+import numpy as np
+from matplotlib import pyplot as plt
 import torch
 
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import accuracy_score
+
+import skorch
+from skorch.helper import predefined_split
+from skorch.dataset import Dataset
+
+from deepspeech.model import DeepSpeech
+from deepspeech.model import SequenceWise
+from deepspeech.data.data_loader import SpectrogramParser
+from deepspeech.data.data_loader import BucketingSampler
+
+from noswear.data import dataset
 from noswear.utils import Identity
 from noswear.utils import bucketing_dataloader
+from noswear.utils import filter_low_count_words
 
 
 
@@ -113,8 +129,6 @@ def get_net(base_model, device='cpu', **kwargs):
         max_epochs=80,
         device=device,
 
-        train_split=predefined_split(Dataset(X_valid, y_valid)),
-
         module__p_dropout=0.0,
         module__n_hidden=32,
         module__n_layers=1,
@@ -130,6 +144,7 @@ def get_net(base_model, device='cpu', **kwargs):
         **kwargs,
     )
     net.initialize()
+    return net
 
 
 def load_model(base_model, weights):

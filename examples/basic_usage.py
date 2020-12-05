@@ -30,12 +30,12 @@ parser = SpectrogramParser(audio_conf, normalize=True)
 
 
 net = load_model(base_model, 'models/binary_clf.pt')
-#print(net)
+print(net)
 
 fpath = args.audio_file.name
 audio = parser.parse_audio(fpath)
 
-X = {'lens': np.array([audio.shape[0]]), 'X': np.array(audio)[None]}
+X = {'lens': np.array([audio.shape[1]]), 'X': np.array(audio)[None]}
 y_pred = net.predict(X)
 
 print(y_pred[0] and 'swear! :(' or 'noswear :)')

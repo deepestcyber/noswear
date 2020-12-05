@@ -66,16 +66,20 @@ class NoSwearModel(torch.nn.Module):
         self.rnn.reset_parameters()
         self.clf.reset_parameters()
 
-    def forward(self, X, lens):
+    def forward(self, X, lens, h0=None, c0=None):
         # run base model, output is NxTxH with
         # T=Time, N=samples, H=hidden.
         y_pre = self.base_model(X)
         y_pre = self.dropout(y_pre)
 
+        if h0 is None or c0 is None:
+            h0 = self.h0.repeat(1, X.shape[0], 1).to(X)
+            c0 = self.c0.repeat(1, X.shape[0], 1).to(X)
+
         # run RNN over sequence and extract "last" item
-        y, _ = self.rnn(y_pre, (
-            self.h0.repeat(1, X.shape[0], 1).to(X),
-            self.c0.repeat(1, X.shape[0], 1).to(X),
+        y, (h1, c1) = self.rnn(y_pre, (
+            h0,
+            c0,
         ))
 
         if self.selector == 'designated':
@@ -107,7 +111,7 @@ class NoSwearModel(torch.nn.Module):
             y = y[:, -1]
 
         y = self.clf(y)
-        return y, indicator[idcs_batch, idcs_time], indicator
+        return y, indicator[idcs_batch, idcs_time], indicator, h1, c1
 
 
 class BinaryClassifier(skorch.classifier.NeuralNetBinaryClassifier):
@@ -147,7 +151,7 @@ def get_net(base_model, device='cpu', **kwargs):
     return net
 
 
-def load_model(base_model, weights):
-    net = get_net(base_model)
+def load_model(base_model, weights, **kwargs):
+    net = get_net(base_model, **kwargs)
     net.load_params(weights)
     return net

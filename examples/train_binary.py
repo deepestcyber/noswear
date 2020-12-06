@@ -33,12 +33,12 @@ base_model = DeepSpeech.load_model(
 )
 audio_conf = DeepSpeech.get_audio_conf(base_model)
 parser = SpectrogramParser(audio_conf, normalize=True)
-
+sampler = dataset.SOXSampler(sample_rate=audio_conf['sample_rate'])
 
 # We have our own swear/non-swear data, load it.
 ds_swear = dataset.SwearDataset(base_path='../', providers=dataset.DEFAULT_PROVIDERS)
 X_swear, y_swear = ds_swear.load()
-ds = dataset.SwearBinaryAudioDataset(X_swear, y_swear, parser)
+ds = dataset.SwearBinaryAudioDataset(X_swear, y_swear, parser, sampler)
 X, y = ds.load()
 
 

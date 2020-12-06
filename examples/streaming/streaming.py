@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import librosa
 import alsaaudio
 import wave
@@ -176,6 +177,7 @@ def detect(base_model_path, capture_queue, verbose=False):
             X['c0'] = c0
 
         y, indicator, _indicator_seq, h0, c0 = list(net.forward_iter(X))[0]
+        y = torch.sigmoid(y[0])
 
         print(y, indicator)
 
@@ -184,7 +186,7 @@ def detect(base_model_path, capture_queue, verbose=False):
 if __name__ == "__main__":
     import argparse
     from multiprocessing import Queue, Process
-    import torch
+
 
     from deepspeech.model import DeepSpeech
     from noswear.model import load_model

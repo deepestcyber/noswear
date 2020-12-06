@@ -2,12 +2,50 @@ import numpy as np
 import librosa
 import alsaaudio
 import wave
+from scipy import signal
+
+
+class SignalProcessor:
+    def __init__(
+        self,
+        high_pass_cutoff=300,
+        sampling_rate=16e3,
+    ):
+        self.high_pass_cutoff = high_pass_cutoff
+        self.sampling_rate = sampling_rate
+
+    def butter_highpass(self, cutoff, fs, order=5):
+        nyq = 0.5 * fs
+        normal_cutoff = cutoff / nyq
+        b, a = signal.butter(order, normal_cutoff, btype='high', analog=False)
+        return b, a
+
+    def butter_highpass_filter(self, data, cutoff, fs, order=5):
+        b, a = self.butter_highpass(cutoff, fs, order=order)
+        y = signal.filtfilt(b, a, data)
+        return y
+
+    def nemo_highpass(self, x, a):
+        y = x.copy()
+        for i in range(1, len(x) - 1):
+            y[i] = a * (y[i-1] + x[i] - x[i-1])
+        return y
+
+    def nemo_highpass_freq(self, x, fc, sampling_rate):
+        a = 1 / (2*np.pi*(1/sampling_rate)*fc + 1)
+        return self.nemo_highpass(x, a)
+
+    def process(self, y):
+        return self.nemo_highpass_freq(
+            y, self.high_pass_cutoff, self.sampling_rate)
+
+        return self.butter_highpass_filter(
+            y, self.high_pass_cutoff, self.sampling_rate)
 
 
 def compute_spect(
     y,
     audio_conf,
-    eps=1e-6,
     normalize=True,
 ):
     sample_rate = audio_conf['sample_rate']
@@ -26,11 +64,18 @@ def compute_spect(
 
     # S = log(S+1)
     spect = np.log1p(spect)
+
     if normalize:
-        mean = spect.mean()
-        std = spect.std()
-        spect -= mean
-        spect /= std + eps
+        spect = normalize_spect(spect)
+
+    return spect
+
+
+def normalize_spect(spect, eps=1e-6):
+    mean = spect.mean()
+    std = spect.std()
+    spect -= mean
+    spect /= std + eps
     return spect
 
 
@@ -43,8 +88,8 @@ def wav_file_handle(path: str, sample_rate: float):
 def capture(audio_conf, queue, verbose, debug=False):
     sample_rate = audio_conf['sample_rate']
     window_size_abs = int(audio_conf['window_size'] * sample_rate)
-    write_to_file = False
-    period_size = 20 * window_size_abs
+    period_size = 40 * window_size_abs
+    write_to_file = debug
 
     inp = alsaaudio.PCM(alsaaudio.PCM_CAPTURE)
 
@@ -52,8 +97,12 @@ def capture(audio_conf, queue, verbose, debug=False):
     inp.setchannels(1)
     inp.setrate(audio_conf['sample_rate'])
     inp.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-
     inp.setperiodsize(period_size)
+
+    processor = SignalProcessor(
+        high_pass_cutoff=1000,
+        sampling_rate=sample_rate,
+    )
 
     if write_to_file:
         wav_file = wav_file_handle(
@@ -66,6 +115,8 @@ def capture(audio_conf, queue, verbose, debug=False):
         l, data = inp.read()
         y = np.fromstring(data, dtype='int16')
 
+        y = processor.process(y)
+
         if write_to_file:
             wav_file.writeframes(y.tostring())
 
@@ -74,10 +125,6 @@ def capture(audio_conf, queue, verbose, debug=False):
             audio_conf,
             normalize=True,
         )
-
-        if debug:
-            import pdb
-            pdb.set_trace()
 
         if verbose:
             print("queueing step", step)
@@ -115,7 +162,7 @@ def detect(base_model_path, capture_queue, verbose=False):
         spect_tm1 = spect[:, -spect.shape[1]//2:]
 
         if verbose:
-            print(f"Processing {step}...")
+            print(f"Processing {step}, spect: {spect.shape}")
 
         # exptects X.shape = (batch, feature, time)
         # we have spect.shape = [feature, time]
@@ -128,7 +175,6 @@ def detect(base_model_path, capture_queue, verbose=False):
             X['h0'] = h0
             X['c0'] = c0
 
-        #print(X['lens'], X['X'].shape)
         y, indicator, _indicator_seq, h0, c0 = list(net.forward_iter(X))[0]
 
         print(y, indicator)
@@ -137,9 +183,8 @@ def detect(base_model_path, capture_queue, verbose=False):
 
 if __name__ == "__main__":
     import argparse
-    #from multiprocessing import Queue, Process
+    from multiprocessing import Queue, Process
     import torch
-    from torch.multiprocessing import Queue, Process
 
     from deepspeech.model import DeepSpeech
     from noswear.model import load_model
@@ -161,7 +206,8 @@ if __name__ == "__main__":
     # deepspeech model to the main process, we cannot use it
     # in subprocesses (i don't know why) but simply loading
     # the audio-conf via torch.load does not induce this,
-    # probably because the state_dict is not loaded.
+    # probably because the state_dict is not loaded (which
+    # it will when we call DeepSpeech.load_model()).
     #
     #base_model = DeepSpeech.load_model(args.base_model_path)
     #audio_conf = DeepSpeech.get_audio_conf(base_model)

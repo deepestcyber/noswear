@@ -31,3 +31,13 @@ The current model is still experimental so the most detail is
 in `notebooks/binary_recognition_binclass.ipynb` but there is
 also a training script in `examples/train_binary.py` which
 will produce a trained model.
+
+You can run a simple classification on a sound file of yours
+using a trained model like so:
+
+	python examples/basic_usage.py <foo.wav>
+
+A more elaborate example with streaming input from your microphone
+can be run with:
+
+	python examples/streaming/streaming.py

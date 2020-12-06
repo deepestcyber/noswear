@@ -135,16 +135,16 @@ def get_net(base_model, device='cpu', **kwargs):
         iterator_valid__bucket_fn=bucket,
 
         batch_size=4,
-        max_epochs=80,
+        max_epochs=30,
         device=device,
 
         module__p_dropout=0.0,
-        module__n_hidden=32,
+        module__n_hidden=48,
         module__n_layers=1,
         module__selector='designated_afew',
 
         optimizer=torch.optim.Adam,
-        optimizer__lr=0.0004,
+        optimizer__lr=0.0002,
 
         callbacks=[
             skorch.callbacks.Freezer('base_model.*'),
@@ -156,7 +156,19 @@ def get_net(base_model, device='cpu', **kwargs):
     return net
 
 
-def load_model(base_model, weights, **kwargs):
+def load_model(base_model, load_kwargs, **kwargs):
+    """Load a saved model.
+
+    To get a freshly initialized model:
+    >>> load_model(base_model)
+
+    To load a model from a checkpoint:
+    >>> load_model(base_model, {'checkpoint': someSkorchCheckpointCallback})
+
+    To load a model from a PyTorch params.pt:
+    >>> load_model(base_model, {'f_params': 'params.pt'})
+    """
     net = get_net(base_model, **kwargs)
-    net.load_params(weights)
+    if load_kwargs:
+        net.load_params(**load_kwargs)
     return net

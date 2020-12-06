@@ -144,7 +144,7 @@ def detect(base_model_path, capture_queue, verbose=False):
         print("Starting detector, loading models")
 
     base_model = DeepSpeech.load_model(base_model_path)
-    net = load_model(base_model, 'models/binary_clf.pt')
+    net = load_model(base_model, {'f_pickle': 'models/binary_clf.pkl'})
 
     if verbose:
         print('Model loaded.')

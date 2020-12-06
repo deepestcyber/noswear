@@ -108,16 +108,18 @@ net = BinaryClassifier(
     train_split=predefined_split(Dataset(X_valid, y_valid)),
 
     module__p_dropout=0.0,
-    module__n_hidden=32,
+    module__n_hidden=48,
     module__n_layers=1,
     module__selector='designated_afew',
 
     optimizer=torch.optim.Adam,
-    optimizer__lr=0.0004,
+    optimizer__lr=0.0002,
 
     callbacks=[
         skorch.callbacks.Freezer('base_model.*'),
-        skorch.callbacks.Checkpoint(monitor='valid_acc_best'),
+        skorch.callbacks.Checkpoint(
+            monitor='valid_acc_best',
+            f_pickle='model_valid_acc_best.pkl'),
         #skorch.callbacks.TrainEndCheckpoint(),
     ]
 )
@@ -131,4 +133,4 @@ net.load_params(checkpoint=checkpoint_cb)
 print(accuracy_score(y_valid, net.predict(X_valid)))
 print(accuracy_score(y_test, net.predict(X_test)))
 
-print(f"Model training done, result is in {checkpoint_cb.f_params}")
+print(f"Model training done, result is in {checkpoint_cb.f_pickle}")

@@ -16,6 +16,10 @@ DEFAULT_PROVIDERS = {
         'path': 'data/meriamwebster/download/',
         'format': 'wav',
     },
+    'aux': {
+        'path': 'data/aux/',
+        'format': 'wav',
+    },
 }
 
 

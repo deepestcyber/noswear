@@ -13,8 +13,6 @@ from deepspeech.data.data_loader import SpectrogramParser
 from noswear.model import load_model
 
 
-
-
 parser = argparse.ArgumentParser()
 parser.add_argument('audio_file', type=argparse.FileType('r'),
     help='File to classify')
@@ -29,7 +27,7 @@ audio_conf = DeepSpeech.get_audio_conf(base_model)
 parser = SpectrogramParser(audio_conf, normalize=True)
 
 
-net = load_model(base_model, 'models/binary_clf.pt')
+net = load_model(base_model, {'f_pickle': 'models/binary_clf.pkl'})
 print(net)
 
 fpath = args.audio_file.name

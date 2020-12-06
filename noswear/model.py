@@ -51,11 +51,11 @@ class NoSwearModel(torch.nn.Module):
         self.rnn = torch.nn.LSTM(672, n_hidden, num_layers=n_layers, bias=False, batch_first=True)
 
         if inital_state_trainable:
-            self.h0 = torch.nn.Parameter(torch.zeros(1, 1, n_hidden))
-            self.c0 = torch.nn.Parameter(torch.zeros(1, 1, n_hidden))
+            self.h0 = torch.nn.Parameter(torch.zeros(n_layers, 1, n_hidden))
+            self.c0 = torch.nn.Parameter(torch.zeros(n_layers, 1, n_hidden))
         else:
-            self.h0 = torch.zeros(1, 1, n_hidden)
-            self.c0 = torch.zeros(1, 1, n_hidden)
+            self.h0 = torch.zeros(n_layers, 1, n_hidden)
+            self.c0 = torch.zeros(n_layers, 1, n_hidden)
 
         self.clf = torch.nn.Linear(n_hidden, 1, bias=False)
         self.dropout = torch.nn.Dropout(p=p_dropout)

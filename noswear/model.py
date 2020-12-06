@@ -86,32 +86,37 @@ class NoSwearModel(torch.nn.Module):
             # instead of taking element -1 we just
             # designate neuron 0 to be our confidence indicator;
             # we take the element where [0] is greatest.
-            indicator = y[:, :, 0]
-            idcs_time = indicator.argmax(axis=-1)
+            indicator_seq = y[:, :, 0]
+            idcs_time = indicator_seq.argmax(axis=-1)
             idcs_batch = list(range(X.shape[0]))
+            indicator = indicator_seq[idcs_batch, idcs_time]
 
             # index using (batch, time) tuples
             y = y[idcs_batch, idcs_time, :]
         elif self.selector == 'designated_sum':
             ble = y
-            indicator = y[:, :, [0]*100].sum(dim=-1)
-            idcs_time = indicator.argmax(axis=-1)
+            indicator_seq = y[:, :, [0]*100].sum(dim=-1)
+            idcs_time = indicator_seq.argmax(axis=-1)
             idcs_batch = list(range(X.shape[0]))
+            indicator = indicator_seq[idcs_batch, idcs_time]
 
             y = y[idcs_batch, idcs_time, :]
         elif self.selector == 'designated_afew':
             # same as designated but look at at least N frames
             N = 10
-            indicator = y[:, N:, 0]
-            idcs_time = indicator.argmax(axis=-1)
+            indicator_seq = y[:, N:, 0]
+            idcs_time = indicator_seq.argmax(axis=-1)
             idcs_batch = list(range(X.shape[0]))
+            indicator = indicator_seq[idcs_batch, idcs_time]
 
             y = y[idcs_batch, idcs_time, :]
         else:
+            indicator = y[:, -1]
+            indicator_seq = y[:, :]
             y = y[:, -1]
 
         y = self.clf(y)
-        return y, indicator[idcs_batch, idcs_time], indicator, h1, c1
+        return y, indicator, indicator_seq, h1, c1
 
 
 class BinaryClassifier(skorch.classifier.NeuralNetBinaryClassifier):

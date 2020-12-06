@@ -89,18 +89,82 @@ class SwearDataset:
         return X, y
 
 
+def remove_common_prefix(a, b):
+    """remove the common prefix from b.
+    Useful when removing a common prefix between strings a and b
+    such as common directory names (/tmp/foo/a, /tmp/foo/b).
+    """
+    i = 0
+    for ca, cb in zip(a, b):
+        i += 1
+        if ca != cb:
+            i -= 1
+            break
+    return b[i:]
+
+
+class SOXSampler:
+    """Audio down-sampler using file-system as cache."""
+    def __init__(self, sample_rate, directory='./sampler_cache'):
+        self.sample_rate = int(sample_rate)
+        self.directory = directory
+
+    def insert_suffix(self, fname, suffix):
+        exts = os.path.splitext(fname)
+        return ''.join(exts[:-1] + (suffix,) + exts[-1:])
+
+    def new_path(self, fpath):
+        cache_dir = os.path.abspath(self.directory)
+        source_dir = os.path.dirname(fpath)
+        source_dir = remove_common_prefix(cache_dir, source_dir)
+        source_dir = source_dir.lstrip(os.path.sep)
+
+        return os.path.join(
+            os.path.abspath(self.directory),
+            source_dir,
+            self.insert_suffix(os.path.basename(fpath), f".{self.sample_rate}"),
+        )
+
+    def downsample_using_sox(self, fpath, sample_rate):
+        """Change sample to the given sample rate and return the new
+        (temporary) file.
+        """
+        fpath = os.path.abspath(fpath)
+        fpath_ds = self.new_path(fpath)
+        dpath_ds = os.path.dirname(fpath_ds)
+
+        if not os.path.exists(dpath_ds):
+            os.makedirs(dpath_ds)
+
+        if os.path.exists(fpath_ds):
+            return fpath_ds
+
+        sox_params = "sox \"{f_in}\" -r {sr} -c 1 -b 16 -e si {f_out} >/dev/null 2>&1".format(
+            f_in=fpath,
+            sr=sample_rate,
+            f_out=fpath_ds,
+        )
+        os.system(sox_params)
+        return fpath_ds
+
+    def downsample(self, fpath):
+        return self.downsample_using_sox(fpath, self.sample_rate)
+
 
 class SwearBinaryAudioDataset:
     """Provides audio frames and a binary label (swear/noswear).
     """
-    def __init__(self, X, y, parser):
+    def __init__(self, X, y, parser, sampler):
         self.X = X
         self.y = y
         assert len(X) == len(y)
         self.parser = parser
+        self.sampler = sampler
 
     def table(self):
         for i, (word, fpath) in enumerate(self.X):
+            if self.sampler:
+                fpath = self.sampler.downsample(fpath)
             frames = self.parser.parse_audio(fpath)
             yield frames, int(self.y[i])
 

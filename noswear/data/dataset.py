@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from itertools import cycle
 
 
@@ -43,7 +44,7 @@ class SwearDataset:
             bad_word_path='data/bad_words.txt'):
         self.good_word_path = os.path.join(base_path, good_word_path)
         self.bad_word_path = os.path.join(base_path, bad_word_path)
-        self.providers = providers
+        self.providers = deepcopy(providers)
         for provider in self.providers:
             self.providers[provider]['path'] = os.path.join(
                 base_path,

@@ -177,9 +177,9 @@ def detect(base_model_path, capture_queue, verbose=False):
             X['c0'] = c0
 
         y, indicator, _indicator_seq, h0, c0 = list(net.forward_iter(X))[0]
-        y = torch.sigmoid(y[0])
+        p = torch.sigmoid(y[0])
 
-        print(y, indicator)
+        print(y, p, indicator)
 
 
 

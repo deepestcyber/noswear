@@ -5,7 +5,7 @@ from itertools import cycle
 
 DEFAULT_PROVIDERS = {
     'dictcc': {
-        'path': 'data/distcc/download/',
+        'path': 'data/dictcc/download/',
         'format': 'mp3',
     },
     'forvo': {
@@ -59,14 +59,21 @@ class SwearDataset:
                 yield line.strip()
 
     def retrieve_words(self, word, provider):
+        """Retrieve files following the {word}_[...].{fmt} pattern
+        from the directory of the given provider.
+        """
         path = provider['path']
         fmt = provider['format']
 
-        for i in range(999):
-            fpath = os.path.join(path, '{word}_{n}.{fmt}'.format(
-			word=word, n=i+1, fmt=fmt))
-            if not os.path.exists(fpath):
-                break
+        if not os.path.exists(path):
+            return
+
+        for fname in os.listdir(path):
+            if not fname.startswith(word + '_'):
+                continue
+            if not fname.endswith('.' + fmt):
+                continue
+            fpath = os.path.join(path, fname)
             yield fpath
 
     def table(self):
